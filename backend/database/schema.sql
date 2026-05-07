@@ -96,7 +96,7 @@ CREATE TABLE reviews (
 -- 9. Notifications Table
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
     type VARCHAR(50), -- e.g., 'booking_request', 'payment_success'
     message TEXT NOT NULL,
     is_read BOOLEAN DEFAULT FALSE,
