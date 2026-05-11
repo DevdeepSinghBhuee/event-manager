@@ -1,31 +1,44 @@
-import { Routes, Route } from 'react-router-dom';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
+import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
+import Unauthorized from './pages/Unauthorized';
+import PublicRoute from './routes/PublicRoute';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 function App() {
   return (
-    <Routes>
-      {/* The Layout component wraps our pages to show the Navbar everywhere */}
-      <Route path="/" element={<Layout />}>
-        {/* Landing Page Placeholder */}
-        <Route index element={
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <h1 className="text-4xl font-bold text-gray-800">Welcome to Event Manager</h1>
-          </div>
-        } />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Navigate to="/login" replace />} />
+            
+            <Route path="login" element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } />
+            
+            <Route path="register" element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            } />
 
-        {/* Register Page Route (Phase 1 Task) */}
-        <Route path="register" element={<Register />} />
+            <Route path="profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
 
-        {/* Login Page Placeholder (Next Cycle) */}
-        <Route path="login" element={
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <h2 className="text-2xl">Login Page Coming Soon</h2>
-          </div>
-        } />
-      </Route>
-    </Routes>
+            <Route path="unauthorized" element={<Unauthorized />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
