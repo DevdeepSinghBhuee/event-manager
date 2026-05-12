@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const vendorRoutes = require('./src/routes/vendorRoutes');
+const eventRoutes = require('./src/routes/eventRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(cors({ origin: process.env.CLIENT_URL })); // Allow frontend access
 app.use(morgan('dev')); // Logging
 app.use(express.json()); // Body parser
 app.use('/api/vendors', vendorRoutes);
+app.use('/api/events', eventRoutes);
 
 // Health Check Route
 app.get('/api/health', (req, res) => {
