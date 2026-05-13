@@ -6,6 +6,7 @@ const vendorRoutes = require('./src/routes/vendorRoutes');
 const eventRoutes = require('./src/routes/eventRoutes');
 const bookingRoutes = require('./src/routes/bookingRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
+const reviewRoutes = require('./src/routes/reviewRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -20,6 +21,7 @@ app.use('/api/vendors', vendorRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health Check Route
 app.get('/api/health', (req, res) => {
