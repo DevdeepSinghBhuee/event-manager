@@ -1,5 +1,17 @@
+const notificationModel = require('../models/notificationModel');
+const { getIO } = require('../config/socket');
 const bookingModel = require('../models/bookingModel');
 const eventModel = require('../models/eventModel');
+
+// Helper — save to DB and emit via socket
+const sendNotification = async (user_id, type, message) => {
+  const notification = await notificationModel.createNotification({ user_id, type, message });
+  try {
+    getIO().to(user_id).emit('notification', notification);
+  } catch (err) {
+    console.error('Socket emit error:', err.message);
+  }
+};
 
 // ─────────────────────────────────────────
 // POST /api/bookings
@@ -42,7 +54,15 @@ const createBooking = async (req, res) => {
       booked_date,
     });
 
+    // Send response first
     res.status(201).json({ message: 'Booking created successfully', booking });
+
+    // Notify vendor about new booking (after response)
+    await sendNotification(
+      booking.vendor_id,
+      'booking',
+      `You have a new booking request for "${booking.service_title || 'your service'}"`
+    );
   } catch (error) {
     console.error('createBooking error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -134,7 +154,16 @@ const updateBookingStatus = async (req, res) => {
     }
 
     const updated = await bookingModel.updateBookingStatus(req.params.id, status);
+
+    // Send response first
     res.status(200).json({ message: `Booking ${status}`, booking: updated });
+
+    // Notify customer about booking status change (after response)
+    await sendNotification(
+      updated.customer_id,
+      'booking',
+      `Your booking has been ${status} by the vendor`
+    );
   } catch (error) {
     console.error('updateBookingStatus error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -166,7 +195,16 @@ const cancelBooking = async (req, res) => {
     }
 
     const updated = await bookingModel.updateBookingStatus(req.params.id, 'cancelled');
+
+    // Send response first
     res.status(200).json({ message: 'Booking cancelled successfully', booking: updated });
+
+    // Notify vendor about cancellation (after response)
+    await sendNotification(
+      updated.vendor_id,
+      'booking',
+      `A booking has been cancelled by the customer`
+    );
   } catch (error) {
     console.error('cancelBooking error:', error);
     res.status(500).json({ message: 'Server error' });
