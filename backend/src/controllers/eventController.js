@@ -1,5 +1,17 @@
+const notificationModel = require('../models/notificationModel');
+const { getIO } = require('../config/socket');
 const eventModel = require('../models/eventModel');
 const invitationModel = require('../models/invitationModel');
+
+// Helper — save to DB and emit via socket
+const sendNotification = async (user_id, type, message) => {
+  const notification = await notificationModel.createNotification({ user_id, type, message });
+  try {
+    getIO().to(user_id).emit('notification', notification);
+  } catch (err) {
+    console.error('Socket emit error:', err.message);
+  }
+};
 
 // ─────────────────────────────────────────
 // EVENT CRUD
@@ -154,7 +166,15 @@ const inviteVendor = async (req, res) => {
       vendor_id,
     });
 
+    // Send response first
     res.status(201).json({ message: 'Vendor invited successfully', invitation });
+
+    // Notify vendor about the invitation (after response)
+    await sendNotification(
+      vendor_id,
+      'invitation',
+      `You have been invited to the event "${event.title}"`
+    );
   } catch (error) {
     // Catch the duplicate invitation error from model
     if (error.message === 'Vendor has already been invited to this event') {
